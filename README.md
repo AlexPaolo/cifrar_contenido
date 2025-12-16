@@ -13,3 +13,4 @@ Se mostrará el texto cifrado.
 1. Clona el repositorio
    ```bash
    git clone https://github.com/AlexPaolo/cifrar_contenido.git
+2. Edita el archivo index.html
