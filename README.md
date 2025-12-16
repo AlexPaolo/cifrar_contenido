@@ -2,11 +2,13 @@
 Creación de una página web para cifrar y descifrar texto utilizando los métodos de cifrado/descifrado: Cifrado César, Cifrado Vigenère, Cifrado por Transposición y Base64.
 
 ## Manual de uso.
-Ingresa a la [página web](https://alexpaolo.github.io/cifrar_contenido/) para cifrar y descifrar cualquier texto.
-Coloca el texto en claro.
-Agrega una clave.
-Da click en cifrar.
-Se mostrará el texto cifrado.
+<ul>
+   <li>Ingresa a la [página web](https://alexpaolo.github.io/cifrar_contenido/) para cifrar y descifrar cualquier texto.</li>
+   <li>Coloca el texto en claro.</li>
+   <li>Agrega una clave.</li>
+   <li>Da click en cifrar.</li>
+   <li>Se mostrará el texto cifrado.</li>
+</ul>
 
 ### Instalación
 
