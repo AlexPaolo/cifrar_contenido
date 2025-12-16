@@ -3,7 +3,7 @@ Creación de una página web para cifrar y descifrar texto utilizando los métod
 
 ## Manual de uso.
 <ul>
-   <li>Ingresa a la [página web](https://alexpaolo.github.io/cifrar_contenido/) para cifrar y descifrar cualquier texto.</li>
+   <li>Ingresa a la página web https://alexpaolo.github.io/cifrar_contenido para cifrar y descifrar cualquier texto.</li>
    <li>Coloca el texto en claro.</li>
    <li>Agrega una clave.</li>
    <li>Da click en cifrar.</li>
