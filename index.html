@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cifrador Avanzado de Texto</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f0f7ff;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #004d99;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        label, .parametro-label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        textarea, select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            box-sizing: border-box;
+            border: 1px solid #cce0ff;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 15px;
+            margin-top: 20px;
+            font-size: 17px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f7ff;
+            border: 2px dashed #b3d9ff;
+            border-radius: 6px;
+            min-height: 50px;
+            font-family: monospace;
+            font-size: 1.1em;
+            word-wrap: break-word;
+        }
+        .param-section {
+            display: none; /* Controlado por JS */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔐 Cifrador Avanzado de Texto</h1>
+
+        <div class="input-group">
+            <label for="metodo">Selecciona el Método de Cifrado:</label>
+            <select id="metodo" onchange="mostrarParametros()">
+                <option value="cesar">1. Cifrado César (Desplazamiento Numérico)</option>
+                <option value="vigenere">2. Cifrado Vigenère (Clave de Texto)</option>
+                <option value="transposicion">3. Cifrado por Transposición (Clave de Texto)</option>
+                <option value="base64">4. Base64 (Codificación Estándar)</option>
+            </select>
+        </div>
+
+        <div class="param-section" id="cesar-param">
+            <label class="parametro-label" for="cesar-desplazamiento">Clave Numérica (Desplazamiento César 1-25):</label>
+            <input type="number" id="cesar-desplazamiento" value="3" min="1" max="25">
+        </div>
+
+        <div class="param-section" id="clave-param">
+            <label class="parametro-label" for="clave-texto">Clave de Texto (Vigenère / Transposición):</label>
+            <input type="text" id="clave-texto" placeholder="Introduce una palabra clave (solo letras)">
+        </div>
+
+        <div class="input-group">
+            <label for="textoOriginal">Texto para Cifrar/Descifrar:</label>
+            <textarea id="textoOriginal" rows="5" placeholder="Introduce el texto aquí..."></textarea>
+        </div>
+
+        <button onclick="procesarTexto(true)">Cifrar / Codificar</button>
+        <button onclick="procesarTexto(false)">Descifrar / Decodificar</button>
+
+        <label for="resultado">Resultado:</label>
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        // --- FUNCIONES DE CIFRADO / DESCIFRADO ---
+        const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+
+        // 1. Cifrado César
+        function cesar(texto, desplazamiento, esCifrado) {
+            let clave = esCifrado ? desplazamiento : -desplazamiento;
+            let resultado = '';
+
+            for (let i = 0; i < texto.length; i++) {
+                let char = texto[i];
+                let isUpperCase = (char === char.toUpperCase());
+                let lowerChar = char.toLowerCase();
+                let index = ALPHABET.indexOf(lowerChar);
+
+                if (index !== -1) {
+                    let newIndex = (index + clave) % 26;
+                    if (newIndex < 0) newIndex += 26;
+                    
+                    let newChar = ALPHABET[newIndex];
+                    resultado += isUpperCase ? newChar.toUpperCase() : newChar;
+                } else {
+                    resultado += char;
+                }
+            }
+            return resultado;
+        }
+
+        // 2. Cifrado Vigenère 
+        function vigenere(texto, clave, esCifrado) {
+            let resultado = '';
+            let claveIndex = 0;
+            let claveLimpia = clave.toLowerCase().replace(/[^a-z]/g, '');
+
+            if (claveLimpia.length === 0) return texto;
+
+            for (let i = 0; i < texto.length; i++) {
+                let char = texto[i];
+                let isUpperCase = (char === char.toUpperCase());
+                let lowerChar = char.toLowerCase();
+                let textoIndex = ALPHABET.indexOf(lowerChar);
+
+                if (textoIndex !== -1) {
+                    let keyChar = claveLimpia[claveIndex % claveLimpia.length];
+                    let keyIndex = ALPHABET.indexOf(keyChar);
+
+                    let shift = keyIndex;
+                    if (!esCifrado) shift = -shift; // Invertir el desplazamiento para descifrar
+
+                    let newIndex = (textoIndex + shift) % 26;
+                    if (newIndex < 0) newIndex += 26;
+
+                    let newChar = ALPHABET[newIndex];
+                    resultado += isUpperCase ? newChar.toUpperCase() : newChar;
+
+                    claveIndex++; // Solo avanzar el índice de la clave si procesamos una letra
+                } else {
+                    resultado += char;
+                }
+            }
+            return resultado;
+        }
+
+        // 3. Cifrado por Transposición (Transposición Columna Simple)
+        function transposicion(texto, clave, esCifrado) {
+            let claveLimpia = clave.toLowerCase().replace(/[^a-z]/g, '');
+            if (claveLimpia.length === 0) return texto;
+            const cols = claveLimpia.length;
+            const textLimpio = texto.replace(/[\s\W]/g, ''); // Eliminar espacios y puntuación
+
+            // Orden de las columnas basado en la clave (ej: CLAVE -> 1, 3, 0, 4, 2)
+            let orden = Array.from(claveLimpia).map((char, index) => ({ char, index })).sort((a, b) => a.char.localeCompare(b.char)).map(item => item.index);
+            
+            const rows = Math.ceil(textLimpio.length / cols);
+            let matriz = [];
+
+            if (esCifrado) {
+                // Cifrado: Llenar la matriz por filas
+                for (let i = 0; i < textLimpio.length; i++) {
+                    const r = Math.floor(i / cols);
+                    const c = i % cols;
+                    if (!matriz[r]) matriz[r] = [];
+                    matriz[r][c] = textLimpio[i];
+                }
+                // Rellenar con un caracter ficticio (ej: 'X')
+                while (matriz.length < rows) matriz.push([]);
+                for (let r = 0; r < rows; r++) {
+                    while (matriz[r].length < cols) matriz[r].push('X');
+                }
+
+                // Leer la matriz por el orden de la clave (columnas)
+                let cifrado = '';
+                for (let i = 0; i < cols; i++) {
+                    let colIndex = orden[i];
+                    for (let r = 0; r < rows; r++) {
+                        cifrado += matriz[r][colIndex] || '';
+                    }
+                }
+                return cifrado;
+
+            } else {
+                // Descifrado: Crear una matriz vacía y rellenarla por columnas según el orden
+                let descifradoMatriz = Array.from({ length: rows }, () => Array(cols).fill(''));
+                let k = 0; // Índice en el texto cifrado
+
+                for (let i = 0; i < cols; i++) {
+                    let colIndex = orden[i];
+                    let colLen = rows;
+                    
+                    // Si el texto cifrado no rellena la última fila (caracteres de relleno)
+                    // necesitamos saber la longitud real de esta columna para no ir más allá.
+                    let numPadding = (rows * cols) - textLimpio.length;
+                    let numColsShort = numPadding % cols;
+                    
+                    if (colIndex >= (cols - numColsShort)) {
+                        colLen = rows - 1;
+                    } else {
+                        colLen = rows;
+                    }
+
+                    for (let r = 0; r < colLen; r++) {
+                        if (k < textLimpio.length) {
+                            descifradoMatriz[r][colIndex] = textLimpio[k];
+                            k++;
+                        }
+                    }
+                }
+
+                // Leer la matriz por filas para obtener el texto descifrado
+                let descifrado = '';
+                for (let r = 0; r < rows; r++) {
+                    descifrado += descifradoMatriz[r].join('');
+                }
+                
+                // Eliminar el relleno 'X' al final (si se agregó)
+                return descifrado.trim().replace(/X+$/i, '');
+            }
+        }
+        
+        // 4. Base64
+        function codificarBase64(texto) {
+            return btoa(encodeURIComponent(texto).replace(/%([0-9A-F]{2})/g,
+                (match, p1) => String.fromCharCode('0x' + p1)));
+        }
+
+        function decodificarBase64(texto) {
+            try {
+                return decodeURIComponent(atob(texto).split('').map(c => 
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            } catch (e) {
+                return 'Error: No es una cadena Base64 válida.';
+            }
+        }
+
+        // --- FUNCIONES DE CONTROL DE LA INTERFAZ ---
+
+        function mostrarParametros() {
+            const metodo = document.getElementById('metodo').value;
+            // Ocultar todos los campos de parámetros primero
+            document.querySelectorAll('.param-section').forEach(el => el.style.display = 'none');
+
+            // Mostrar el campo de parámetro relevante
+            if (metodo === 'cesar') {
+                document.getElementById('cesar-param').style.display = 'block';
+            } else if (metodo === 'vigenere' || metodo === 'transposicion') {
+                document.getElementById('clave-param').style.display = 'block';
+            }
+        }
+
+        function procesarTexto(esCifrado) {
+            const texto = document.getElementById('textoOriginal').value;
+            const metodo = document.getElementById('metodo').value;
+            let resultado = '';
+
+            if (texto.trim() === '') {
+                document.getElementById('resultado').textContent = 'Por favor, introduce texto.';
+                return;
+            }
+
+            switch (metodo) {
+                case 'cesar':
+                    const desplazamiento = parseInt(document.getElementById('cesar-desplazamiento').value);
+                    if (isNaN(desplazamiento) || desplazamiento < 1) {
+                        alert("Introduce una clave (desplazamiento) válida para César.");
+                        return;
+                    }
+                    resultado = cesar(texto, desplazamiento, esCifrado);
+                    break;
+
+                case 'vigenere':
+                case 'transposicion':
+                    const claveTexto = document.getElementById('clave-texto').value;
+                    if (claveTexto.trim() === '' || claveTexto.match(/[^a-zA-Z]/)) {
+                        alert("Introduce una clave de texto válida (solo letras).");
+                        return;
+                    }
+                    if (metodo === 'vigenere') {
+                        resultado = vigenere(texto, claveTexto, esCifrado);
+                    } else { // Transposicion
+                        resultado = transposicion(texto, claveTexto, esCifrado);
+                    }
+                    break;
+
+                case 'base64':
+                    resultado = esCifrado ? codificarBase64(texto) : decodificarBase64(texto);
+                    break;
+
+                default:
+                    resultado = "Método no soportado.";
+            }
+
+            document.getElementById('resultado').textContent = resultado;
+        }
+
+        // Inicializar la vista
+        document.addEventListener('DOMContentLoaded', mostrarParametros);
+    </script>
+
+</body>
+</html>
