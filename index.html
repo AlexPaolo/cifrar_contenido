@@ -87,6 +87,7 @@
                 <option value="vigenere">2. Cifrado Vigenère (Clave de Texto)</option>
                 <option value="transposicion">3. Cifrado por Transposición (Clave de Texto)</option>
                 <option value="base64">4. Base64 (Codificación Estándar)</option>
+                <option value="sha256">5. SHA-256 (Hash unidireccional)</option>
             </select>
         </div>
 
@@ -101,14 +102,15 @@
         </div>
 
         <div class="input-group">
-            <label for="textoOriginal">Texto para Cifrar/Descifrar:</label>
+            <label id="texto-label" for="textoOriginal">Texto para Cifrar/Descifrar:</label>
             <textarea id="textoOriginal" rows="5" placeholder="Introduce el texto aquí..."></textarea>
         </div>
 
-        <button onclick="procesarTexto(true)">Cifrar / Codificar</button>
-        <button onclick="procesarTexto(false)">Descifrar / Decodificar</button>
+        <button id="cifrar-button" onclick="procesarTexto(true)">Cifrar / Codificar</button>
+        <button id="descifrar-button" onclick="procesarTexto(false)">Descifrar / Decodificar</button>
+        <p class="param-section" id="sha256-aviso">SHA-256 es un hash unidireccional y no se puede descifrar.</p>
 
-        <label for="resultado">Resultado:</label>
+        <label id="resultado-label" for="resultado">Resultado:</label>
         <div id="resultado"></div>
     </div>
 
@@ -266,28 +268,60 @@
             }
         }
 
+        async function calcularSHA256(texto) {
+            if (!window.crypto || !window.crypto.subtle) {
+                throw new Error('SHA-256 requiere un navegador con Web Crypto en un contexto seguro (HTTPS o localhost).');
+            }
+
+            const datos = new TextEncoder().encode(texto);
+            const hash = await window.crypto.subtle.digest('SHA-256', datos);
+            return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+
         // --- FUNCIONES DE CONTROL DE LA INTERFAZ ---
 
         function mostrarParametros() {
             const metodo = document.getElementById('metodo').value;
+            const esSHA256 = metodo === 'sha256';
             // Ocultar todos los campos de parámetros primero
             document.querySelectorAll('.param-section').forEach(el => el.style.display = 'none');
+            document.getElementById('descifrar-button').style.display = esSHA256 ? 'none' : '';
+            document.getElementById('cifrar-button').textContent = esSHA256 ? 'Calcular hash SHA-256' : 'Cifrar / Codificar';
+            document.getElementById('texto-label').textContent = esSHA256 ? 'Texto de entrada para calcular el hash:' : 'Texto para Cifrar/Descifrar:';
+            document.getElementById('resultado-label').textContent = esSHA256 ? 'Hash SHA-256:' : 'Resultado:';
 
             // Mostrar el campo de parámetro relevante
             if (metodo === 'cesar') {
                 document.getElementById('cesar-param').style.display = 'block';
             } else if (metodo === 'vigenere' || metodo === 'transposicion') {
                 document.getElementById('clave-param').style.display = 'block';
+            } else if (esSHA256) {
+                document.getElementById('sha256-aviso').style.display = 'block';
             }
         }
 
-        function procesarTexto(esCifrado) {
+        async function procesarTexto(esCifrado) {
             const texto = document.getElementById('textoOriginal').value;
             const metodo = document.getElementById('metodo').value;
             let resultado = '';
 
             if (texto.trim() === '') {
                 document.getElementById('resultado').textContent = 'Por favor, introduce texto.';
+                return;
+            }
+
+            if (metodo === 'sha256') {
+                if (!esCifrado) {
+                    document.getElementById('resultado').textContent = 'SHA-256 es un hash unidireccional y no se puede descifrar.';
+                    return;
+                }
+                try {
+                    resultado = await calcularSHA256(texto);
+                } catch (error) {
+                    document.getElementById('resultado').textContent = 'Error al calcular SHA-256: ' + error.message;
+                    return;
+                }
+                document.getElementById('resultado').textContent = resultado;
                 return;
             }
 

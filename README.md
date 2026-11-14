@@ -1,5 +1,5 @@
 # Cifrado de texto
-Creación de una página web para cifrar y descifrar texto utilizando los métodos de cifrado/descifrado: Cifrado César, Cifrado Vigenère, Cifrado por Transposición y Base64.
+Creación de una página web para cifrar y descifrar texto utilizando Cifrado César, Cifrado Vigenère, Cifrado por Transposición y Base64. También permite calcular hashes SHA-256.
 
 ## Manual de uso.
 <ul>
@@ -9,6 +9,8 @@ Creación de una página web para cifrar y descifrar texto utilizando los métod
    <li>Da click en cifrar.</li>
    <li>Se mostrará el texto cifrado.</li>
 </ul>
+
+SHA-256 es un hash unidireccional: no se puede descifrar ni requiere una clave. Para usarlo, selecciona «SHA-256», introduce el texto y pulsa «Calcular hash SHA-256». Web Crypto requiere HTTPS o localhost.
 
 ### Instalación
 
